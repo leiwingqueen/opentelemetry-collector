@@ -9,6 +9,7 @@ import (
 
 // splitTraces removes spans from the input trace and returns a new trace of the specified size.
 func splitTraces(size int, src ptrace.Traces) ptrace.Traces {
+	// TODO: implement split metrics
 	if src.SpanCount() <= size {
 		return src
 	}

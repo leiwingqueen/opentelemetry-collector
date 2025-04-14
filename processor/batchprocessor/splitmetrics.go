@@ -9,6 +9,7 @@ import (
 
 // splitMetrics removes metrics from the input data and returns a new data of the specified size.
 func splitMetrics(size int, src pmetric.Metrics) pmetric.Metrics {
+	// TODO: implement split metrics
 	dataPoints := src.DataPointCount()
 	if dataPoints <= size {
 		return src
