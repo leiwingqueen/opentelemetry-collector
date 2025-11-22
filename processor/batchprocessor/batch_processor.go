@@ -475,53 +475,32 @@ func (bt *batchTraces) itemCount() int {
 }
 
 type batchMetrics struct {
-	nextConsumer   consumer.Metrics
-	metricData     pmetric.Metrics
-	dataPointCount int
-	sizer          pmetric.Sizer
+	// TODO: implement metrics batcher
 }
 
 func newMetricsBatch(nextConsumer consumer.Metrics) *batchMetrics {
-	return &batchMetrics{nextConsumer: nextConsumer, metricData: pmetric.NewMetrics(), sizer: &pmetric.ProtoMarshaler{}}
+	return nil
 }
 
 func (bm *batchMetrics) sizeBytes(md pmetric.Metrics) int {
-	return bm.sizer.MetricsSize(md)
+	return 0
 }
 
 func (bm *batchMetrics) export(ctx context.Context, md pmetric.Metrics) error {
-	return bm.nextConsumer.ConsumeMetrics(ctx, md)
+	return nil
 }
 
 func (bm *batchMetrics) split(sendBatchMaxSize int) (int, pmetric.Metrics) {
-	var md pmetric.Metrics
-	var sent int
-	if sendBatchMaxSize > 0 && bm.dataPointCount > sendBatchMaxSize {
-		md = splitMetrics(sendBatchMaxSize, bm.metricData)
-		bm.dataPointCount -= sendBatchMaxSize
-		sent = sendBatchMaxSize
-	} else {
-		md = bm.metricData
-		sent = bm.dataPointCount
-		bm.metricData = pmetric.NewMetrics()
-		bm.dataPointCount = 0
-	}
-
-	return sent, md
+	// TODO: implement metrics batcher split
+	return 0, pmetric.NewMetrics()
 }
 
 func (bm *batchMetrics) itemCount() int {
-	return bm.dataPointCount
+	return 0
 }
 
 func (bm *batchMetrics) add(md pmetric.Metrics) {
-	defer pref.UnrefMetrics(md)
-	newDataPointCount := md.DataPointCount()
-	if newDataPointCount == 0 {
-		return
-	}
-	bm.dataPointCount += newDataPointCount
-	md.ResourceMetrics().MoveAndAppendTo(bm.metricData.ResourceMetrics())
+	// TODO: implement metrics batcher add
 }
 
 type batchLogs struct {
