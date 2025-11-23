@@ -525,16 +525,18 @@ func (bm *batchMetrics) split(sendBatchMaxSize int) (int, pmetric.Metrics) {
 }
 
 func (bm *batchMetrics) itemCount() int {
-	return bm.data.DataPointCount()
+	return bm.count
 }
 
 func (bm *batchMetrics) add(md pmetric.Metrics) {
 	// implement metrics batcher add
-	if md.DataPointCount() == 0 {
+	defer pref.UnrefMetrics(md)
+	count := md.DataPointCount()
+	if count == 0 {
 		return
 	}
-	md.MoveTo(bm.data)
-	bm.count += md.DataPointCount()
+	md.ResourceMetrics().MoveAndAppendTo(bm.data.ResourceMetrics())
+	bm.count += count
 }
 
 type batchLogs struct {
