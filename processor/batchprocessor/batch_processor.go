@@ -228,11 +228,21 @@ func (b *shard[T]) startLoop() {
 }
 
 func (b *shard[T]) processItem(item T) {
-	// TODO: implement processing overflow when batch is full
+	// implement processing overflow when batch is full
 	// hint:
 	// 1. add item to batch
 	// 2. while batch size > 0 and (no timer or batch size >= sendBatchSize) send items
 	// 3. if sent items, stop and reset timer
+	b.batch.add(item)
+	send := false
+	for b.batch.itemCount() > 0 && (!b.hasTimer() || b.batch.itemCount() > b.processor.sendBatchSize) {
+		b.sendItems(triggerBatchSize)
+		send = true
+	}
+	if send {
+		b.resetTimer()
+	}
+
 }
 
 func (b *shard[T]) hasTimer() bool {
@@ -280,13 +290,13 @@ type singleShardBatcher[T any] struct {
 }
 
 func (sb *singleShardBatcher[T]) start(context.Context) error {
-	// TODO: Start the single shard's goroutine.
 	sb.single.start()
 	return nil
 }
 
 func (sb *singleShardBatcher[T]) consume(_ context.Context, data T) error {
-	// TODO: send data to single shard channel
+	// send data to single shard channel
+	sb.single.newItem <- data
 	return nil
 }
 
