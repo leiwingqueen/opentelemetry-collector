@@ -240,6 +240,7 @@ func (b *shard[T]) processItem(item T) {
 		send = true
 	}
 	if send {
+		b.stopTimer()
 		b.resetTimer()
 	}
 
