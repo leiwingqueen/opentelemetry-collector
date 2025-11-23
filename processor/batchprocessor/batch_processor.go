@@ -235,7 +235,7 @@ func (b *shard[T]) processItem(item T) {
 	// 3. if sent items, stop and reset timer
 	b.batch.add(item)
 	send := false
-	for b.batch.itemCount() > 0 && (!b.hasTimer() || b.batch.itemCount() > b.processor.sendBatchSize) {
+	for b.batch.itemCount() > 0 && (!b.hasTimer() || b.batch.itemCount() >= b.processor.sendBatchSize) {
 		b.sendItems(triggerBatchSize)
 		send = true
 	}
@@ -512,16 +512,17 @@ func (bm *batchMetrics) export(ctx context.Context, md pmetric.Metrics) error {
 
 func (bm *batchMetrics) split(sendBatchMaxSize int) (int, pmetric.Metrics) {
 	// implement metrics batcher split
-	if sendBatchMaxSize >= 0 && bm.dataPointCount > sendBatchMaxSize {
+	if sendBatchMaxSize > 0 && bm.dataPointCount > sendBatchMaxSize {
 		// need to split the batch size
 		sendMetrics := splitMetrics(sendBatchMaxSize, bm.data)
 		bm.dataPointCount -= sendMetrics.DataPointCount()
 		return sendBatchMaxSize, sendMetrics
 	} else {
-		sendMetrics := pmetric.NewMetrics()
-		bm.data.MoveTo(sendMetrics)
+		sendMetrics := bm.data
+		bm.data = pmetric.NewMetrics()
+		sendSize := bm.dataPointCount
 		bm.dataPointCount = 0
-		return bm.dataPointCount, sendMetrics
+		return sendSize, sendMetrics
 	}
 }
 
